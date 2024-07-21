@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mt-5 container-fluid w-50">
+    <h4>Upload Data</h4>
+    <form action="#" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="formFile" class="form-label">Default file input example</label>
+            <input class="form-control" type="file" id="formFile">
+        </div>
+        <button type="button" class="btn btn-primary px-4" id="upload-button" onclick="upload_file()">Start Upload</button>
+    </form>
+    
+    <p class="mt-5 mb-2 text-end" id="progress_text"></p>
+    <div class="progress d-none" style="height: 20px;"></div>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        console.log();
+    });
+    function upload_file(){
+        const uploadForm = $('form')[0];
+        const file = $('#formFile')[0].files[0];
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('csrfmiddlewaretoken', $("input[type='hidden']").val());
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'data_manager:upload_file' %}",
+            data: formData,
+            dataType: "json",
+            contentType: false,
+            processData: false,
+            beforeSend: function(){
+
+            },
+            xhr: function(){
+                const xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener("progress", function(e){
+                    if(e.lengthComputable){
+                        const percentProgress = (e.loaded/e.total)*100;
+                        $(".progress").removeClass('d-none').html('<div class="progress-bar" role="progressbar" style="width: '+percentProgress+'%;" aria-valuenow="'+percentProgress+'" aria-valuemin="0" aria-valuemax="100"></div>');
+                        $("#progress_text").text(percentProgress.toFixed(1)+"%");
+                    }
+                });
+                return xhr;
+            },
+            success: function(data,status,xhr){
+                $("#progress_text").text("Upload Complete.");
+                uploadForm.reset();
+                alert(data.data)
+            },
+            error: function(xhr,status,error){
+                alert("There some issue occured while uploading the file.")
+            }
+        })
+    }
+</script>
+{% endblock scripts %}

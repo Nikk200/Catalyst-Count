@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid mt-5 w-50">
+  <h4 class="mb-5">Query Builder</h4>
+  <div id="alert" class="alert alert-success alert-dismissible mt-5 d-none" role="alert">
+      <i class="bi bi-check-circle-fill"></i> <span id="alert-message"></span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  <form id="filter-form">
+      <div class="row">
+          <div class="col-sm-4">
+              <input class="form-control" type="text" placeholder="Keyword" name="keyword">
+          </div>
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="industrySelect" name="industry">
+                  <option value="" selected disabled>Industry</option>
+                  {% for industry in industries %}
+                  <option value="{{industry.industry}}">{{industry.industry|title}}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="yearFoundedSelect" name="year_founded">
+                  <option value="" selected disabled>Year Founded</option>
+                  {% for year in year_founded %}
+                  <option value="{{year.year_founded}}">{{year.year_founded}}</option>
+                  {% endfor %}
+              </select>
+          </div>
+      </div>
+      <div class="row my-3">
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="citySelect" name="city">
+                  <option value="" selected disabled>City</option>
+                  {% for city in cities %}
+                  <option value="{{city.city}}">{{city.city|title}}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="stateSelect" name="state">
+                  <option value="" selected disabled>State</option>
+                  {% for state in states %}
+                  <option value="{{state.state}}">{{state.state|title}}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="countrySelect" name="country">
+                  <option value="" selected disabled>Country</option>
+                  {% for country in countries %}
+                  <option value="{{country.country}}">{{country.country|title}}</option>
+                  {% endfor %}
+              </select>
+          </div>
+      </div>
+      <div class="row">
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="employeesFromSelect" name="employees_from">
+                  <option value="" selected>Employees (From)</option>
+                  <option value="One">united states</option>
+                  <option value="Two">united states</option>
+                  <option value="Three">united states</option>
+              </select>
+          </div>
+          <div class="col-sm-4">
+              <select class="form-select" role="button" id="employeesToSelect" name="employees_to">
+                  <option value="" selected>Employees (To)</option>
+                  <option value="One">india</option>
+                  <option value="Two">india</option>
+                  <option value="Three">india</option>
+              </select>
+          </div>
+      </div>
+      <button type="button" class="btn btn-primary mt-4" onclick="filterRecords()">Send Query</button>
+      <a type="javascript:void(0)" class="btn btn-secondary px-4 mt-4" id="reset_form">Reset</a>
+  </form>
+  <div id="result-count" class="mt-4"></div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+
+  $(document).ready(function(){
+    $("#reset_form").on("click", function(){
+      $("#filter-form")[0].reset();
+    });
+  });
+  function filterRecords() {
+      const formData = new FormData(document.getElementById('filter-form'));
+      const data = {};
+      formData.forEach((value, key) => {
+          data[key] = value;
+      });
+
+      fetch('/api/filter-records/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+          const alert = document.getElementById('alert');
+          const alertMessage = document.getElementById('alert-message');
+          alert.classList.remove('d-none');
+          alertMessage.innerText = `${data.record_count} records found for the query`;
+      })
+      .catch(error => console.error('Error:', error));
+  }
+</script>
+
+{% endblock content %}
